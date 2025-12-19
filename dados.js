@@ -9,10 +9,12 @@ let state = {
     ownedCompanies: [],
     createdGames: [],
     totalEarned: 0,
-    nextGameId: 1000
+    nextGameId: 1000,
+    rebirths: 0,
+    lifetimeEarnings: 0
 };
 
-// Níveis para jogos criados (custo de criar: R$ 1.000.000)
+// Níveis para jogos criados
 const gameLevels = [
     { level: 1, income: 20, upgradeCost: 0 },
     { level: 2, income: 25, upgradeCost: 500000 },
@@ -30,7 +32,81 @@ const gameLevels = [
 const CREATE_GAME_COST = 1000000;
 
 // ============================================
-// 🆓 JOGOS GRATUITOS - 4 jogos (Renda: R$ 0.10 - 0.15/s)
+// 🔄 SISTEMA DE REBIRTH
+// ============================================
+
+// Requisitos de rebirth (dinheiro necessário)
+const rebirthRequirements = [
+    10000000,      // Rebirth 1: 10M
+    50000000,      // Rebirth 2: 50M
+    100000000,     // Rebirth 3: 100M
+    250000000,     // Rebirth 4: 250M
+    500000000,     // Rebirth 5: 500M
+    1000000000,    // Rebirth 6: 1B
+    2500000000,    // Rebirth 7: 2.5B
+    5000000000,    // Rebirth 8: 5B
+    10000000000,   // Rebirth 9: 10B
+    25000000000    // Rebirth 10: 25B
+];
+
+// Bônus por rebirth (multiplicador adicional)
+const REBIRTH_BONUS = 0.50; // +50% por rebirth
+
+// Calcular bônus total de rebirth
+function calcRebirthBonus() {
+    return state.rebirths * REBIRTH_BONUS;
+}
+
+// Obter requisito do próximo rebirth
+function getNextRebirthRequirement() {
+    if (state.rebirths >= rebirthRequirements.length) {
+        // Após o 10º, dobra o último requisito
+        return rebirthRequirements[rebirthRequirements.length - 1] * Math.pow(2, state.rebirths - rebirthRequirements.length + 1);
+    }
+    return rebirthRequirements[state.rebirths];
+}
+
+// Verificar se pode fazer rebirth
+function canRebirth() {
+    return state.balance >= getNextRebirthRequirement();
+}
+
+// Realizar rebirth
+function doRebirth() {
+    const requirement = getNextRebirthRequirement();
+    
+    if (state.balance < requirement) {
+        return { success: false, message: `Você precisa de R$ ${formatNumber(requirement)}` };
+    }
+    
+    // Salvar dados permanentes
+    const newRebirths = state.rebirths + 1;
+    const lifetimeEarnings = state.lifetimeEarnings + state.totalEarned;
+    
+    // Resetar estado
+    state = {
+        balance: 0,
+        owned: [],
+        ownedCompanies: [],
+        createdGames: [],
+        totalEarned: 0,
+        nextGameId: 1000,
+        rebirths: newRebirths,
+        lifetimeEarnings: lifetimeEarnings
+    };
+    
+    // Resetar devs
+    ownedDevs = [];
+    
+    return { 
+        success: true, 
+        message: `Rebirth ${newRebirths} realizado!`,
+        newBonus: newRebirths * REBIRTH_BONUS
+    };
+}
+
+// ============================================
+// 🆓 JOGOS GRATUITOS - 4 jogos
 // ============================================
 const freeGames = [
     { id: 1, name: "CS2", genre: "FPS Tático", price: 0, icon: "💣", income: 0.15 },
@@ -40,7 +116,7 @@ const freeGames = [
 ];
 
 // ============================================
-// 💵 JOGOS BARATOS - 10 jogos até R$50 (Renda: R$ 0.50 - 2.00/s)
+// 💵 JOGOS BARATOS - 10 jogos até R$50
 // ============================================
 const cheapGames = [
     { id: 10, name: "Among Us", genre: "Party Game", price: 10.99, icon: "🚀", income: 0.50 },
@@ -56,7 +132,7 @@ const cheapGames = [
 ];
 
 // ============================================
-// 💰 JOGOS MÉDIOS - 10 jogos R$50 a R$100 (Renda: R$ 2.50 - 5.00/s)
+// 💰 JOGOS MÉDIOS - 10 jogos R$50 a R$100
 // ============================================
 const mediumGames = [
     { id: 20, name: "Minecraft", genre: "Sandbox", price: 79.99, icon: "🧱", income: 4.00 },
@@ -72,7 +148,7 @@ const mediumGames = [
 ];
 
 // ============================================
-// 💎 JOGOS CAROS - 10 jogos R$100 a R$200 (Renda: R$ 5.00 - 10.00/s)
+// 💎 JOGOS CAROS - 10 jogos R$100 a R$200
 // ============================================
 const expensiveGames = [
     { id: 30, name: "EA FC 24", genre: "Esportes", price: 149.99, icon: "⚽", income: 7.50 },
@@ -88,7 +164,7 @@ const expensiveGames = [
 ];
 
 // ============================================
-// 👑 JOGOS PREMIUM - 10 jogos R$200+ (Renda: R$ 10.00 - 20.00/s)
+// 👑 JOGOS PREMIUM - 10 jogos R$200+
 // ============================================
 const superGames = [
     { id: 40, name: "Cyberpunk 2077 Ultimate", genre: "RPG", price: 249.99, icon: "🌃", income: 12.50 },
@@ -104,7 +180,7 @@ const superGames = [
 ];
 
 // ============================================
-// 🏢 EMPRESAS - 10 empresas (Renda: R$ 25.00 - 1000.00/s)
+// 🏢 EMPRESAS - 10 empresas
 // ============================================
 const companies = [
     { id: 100, name: "Unity", genre: "Engine de Jogos", price: 15000, icon: "🔧", income: 25.00, type: "empresa" },
@@ -130,30 +206,53 @@ const games = {
 };
 
 // ============================================
-// 💰 FUNÇÕES DE CÁLCULO DE RENDA
+// 💰 FUNÇÕES DE CÁLCULO DE RENDA (COM BÔNUS)
 // ============================================
 
-// Calcular renda total de jogos comprados
-function calcGamesIncome() {
+// Calcular renda base de jogos comprados
+function calcGamesIncomeBase() {
     return state.owned.reduce((sum, g) => sum + g.income, 0);
 }
 
-// Calcular renda total de empresas
-function calcCompaniesIncome() {
+// Calcular renda base de empresas
+function calcCompaniesIncomeBase() {
     return state.ownedCompanies.reduce((sum, c) => sum + c.income, 0);
 }
 
-// Calcular renda total de jogos criados
-function calcMyGamesIncome() {
+// Calcular renda base de jogos criados
+function calcMyGamesIncomeBase() {
     return state.createdGames.reduce((sum, g) => {
         const levelData = gameLevels[g.level - 1];
         return sum + (levelData ? levelData.income : 20);
     }, 0);
 }
 
+// Calcular multiplicador total (devs + rebirth)
+function calcTotalMultiplier() {
+    const devsBonus = calcDevsBonus();
+    const rebirthBonus = calcRebirthBonus();
+    return 1 + devsBonus + rebirthBonus;
+}
+
+// Calcular renda de jogos (com bônus)
+function calcGamesIncome() {
+    return calcGamesIncomeBase() * calcTotalMultiplier();
+}
+
+// Calcular renda de empresas (com bônus)
+function calcCompaniesIncome() {
+    return calcCompaniesIncomeBase() * calcTotalMultiplier();
+}
+
+// Calcular renda de meus jogos (com bônus)
+function calcMyGamesIncome() {
+    return calcMyGamesIncomeBase() * calcTotalMultiplier();
+}
+
 // Calcular renda total por segundo
 function calcTotalIncome() {
-    return calcGamesIncome() + calcCompaniesIncome() + calcMyGamesIncome();
+    const baseIncome = calcGamesIncomeBase() + calcCompaniesIncomeBase() + calcMyGamesIncomeBase();
+    return baseIncome * calcTotalMultiplier();
 }
 
 // ============================================
@@ -164,7 +263,6 @@ function calcTotalIncome() {
 function purchaseItem(id) {
     let item = null;
     
-    // Procurar item em todas as categorias
     for (const cat in games) {
         const found = games[cat].find(g => g.id === id);
         if (found) {
@@ -178,17 +276,14 @@ function purchaseItem(id) {
     const isEmpresa = item.type === 'empresa';
     const list = isEmpresa ? state.ownedCompanies : state.owned;
     
-    // Verificar se já possui
     if (list.some(x => x.id === item.id)) {
         return { success: false, message: 'Você já possui este item' };
     }
     
-    // Verificar saldo
     if (state.balance < item.price) {
         return { success: false, message: 'Saldo insuficiente' };
     }
     
-    // Realizar compra
     state.balance -= item.price;
     list.push({...item});
     
@@ -253,20 +348,17 @@ function upgradeCreatedGame(id) {
     };
 }
 
-// Adicionar dinheiro
-function addMoney(amount = 100) {
-    state.balance += amount;
-    return state.balance;
-}
-
 // ============================================
 // 💾 FUNÇÕES DE SAVE/LOAD
 // ============================================
 
-// Salvar jogo
 function saveGameData() {
     try {
-        localStorage.setItem('gameTycoonSave', JSON.stringify(state));
+        const saveData = {
+            state: state,
+            ownedDevs: ownedDevs
+        };
+        localStorage.setItem('gameTycoonSave', JSON.stringify(saveData));
         return true;
     } catch (e) {
         console.error('Erro ao salvar:', e);
@@ -274,12 +366,18 @@ function saveGameData() {
     }
 }
 
-// Carregar jogo
 function loadGameData() {
     try {
         const saved = localStorage.getItem('gameTycoonSave');
         if (saved) {
-            state = JSON.parse(saved);
+            const saveData = JSON.parse(saved);
+            state = saveData.state || state;
+            ownedDevs = saveData.ownedDevs || [];
+            
+            // Compatibilidade com saves antigos
+            if (state.rebirths === undefined) state.rebirths = 0;
+            if (state.lifetimeEarnings === undefined) state.lifetimeEarnings = 0;
+            
             return true;
         }
     } catch (e) {
@@ -288,7 +386,6 @@ function loadGameData() {
     return false;
 }
 
-// Resetar jogo
 function resetGameData() {
     localStorage.removeItem('gameTycoonSave');
     state = {
@@ -297,35 +394,35 @@ function resetGameData() {
         ownedCompanies: [],
         createdGames: [],
         totalEarned: 0,
-        nextGameId: 1000
+        nextGameId: 1000,
+        rebirths: 0,
+        lifetimeEarnings: 0
     };
+    ownedDevs = [];
 }
 
 // ============================================
 // 🔢 FUNÇÕES UTILITÁRIAS
 // ============================================
 
-// Formatar números grandes
 function formatNumber(num) {
+    if (num >= 1000000000000) return (num / 1000000000000).toFixed(2) + 'T';
     if (num >= 1000000000) return (num / 1000000000).toFixed(2) + 'B';
     if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
     if (num >= 1000) return (num / 1000).toFixed(2) + 'K';
     return num.toFixed(2);
 }
 
-// Verificar se possui item
 function isItemOwned(id) {
     return state.owned.some(g => g.id === id) || 
            state.ownedCompanies.some(c => c.id === id);
 }
 
-// Obter renda de jogo criado por nível
 function getCreatedGameIncome(level) {
     const levelData = gameLevels[level - 1];
     return levelData ? levelData.income : 20;
 }
 
-// Obter custo de upgrade
 function getUpgradeCost(level) {
     const nextLevel = gameLevels[level];
     return nextLevel ? nextLevel.upgradeCost : null;

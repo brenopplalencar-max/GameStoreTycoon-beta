@@ -2,10 +2,7 @@
 // 🎨 INTERFACE E RENDERIZAÇÃO
 // ============================================
 
-// Tab atual
 let currentTab = 'free';
-
-// Audio Context para sons
 let audioCtx = null;
 
 function initAudio() {
@@ -61,24 +58,6 @@ function playError() {
     osc.stop(audioCtx.currentTime + 0.2);
 }
 
-function playCoin() {
-    initAudio();
-    [0, 80, 160].forEach((delay, i) => {
-        setTimeout(() => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.frequency.setValueAtTime(500 + i * 200, audioCtx.currentTime);
-            osc.type = 'sine';
-            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.12);
-        }, delay);
-    });
-}
-
 function playSuccess() {
     initAudio();
     [0, 100, 200, 300].forEach((delay, i) => {
@@ -97,6 +76,24 @@ function playSuccess() {
     });
 }
 
+function playRebirth() {
+    initAudio();
+    [0, 150, 300, 450, 600].forEach((delay, i) => {
+        setTimeout(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(300 + i * 200, audioCtx.currentTime);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }, delay);
+    });
+}
+
 // ============================================
 // 📊 ATUALIZAÇÃO DA UI
 // ============================================
@@ -106,17 +103,41 @@ function updateUI() {
     document.getElementById('gamesOwned').textContent = state.owned.length;
     document.getElementById('companiesOwned').textContent = state.ownedCompanies.length;
     document.getElementById('createdGames').textContent = state.createdGames.length;
+    document.getElementById('devsOwned').textContent = ownedDevs.length;
+    document.getElementById('rebirthCount').textContent = state.rebirths;
 
     const gIncome = calcGamesIncome();
     const cIncome = calcCompaniesIncome();
     const myIncome = calcMyGamesIncome();
     const total = gIncome + cIncome + myIncome;
+    const multiplier = calcTotalMultiplier();
 
     document.getElementById('gamesIncome').textContent = formatNumber(gIncome);
     document.getElementById('companiesIncome').textContent = formatNumber(cIncome);
     document.getElementById('myGamesIncome').textContent = formatNumber(myIncome);
     document.getElementById('totalIncome').textContent = formatNumber(total);
     document.getElementById('totalEarned').textContent = formatNumber(state.totalEarned);
+    document.getElementById('multiplier').textContent = (multiplier * 100).toFixed(0) + '%';
+
+    // Atualizar barra de rebirth
+    updateRebirthProgress();
+}
+
+function updateRebirthProgress() {
+    const requirement = getNextRebirthRequirement();
+    const progress = Math.min((state.balance / requirement) * 100, 100);
+    
+    document.getElementById('rebirthProgress').style.width = progress + '%';
+    document.getElementById('rebirthRequirement').textContent = formatNumber(requirement);
+    
+    const rebirthBtn = document.getElementById('rebirthBtn');
+    if (canRebirth()) {
+        rebirthBtn.disabled = false;
+        rebirthBtn.classList.add('ready');
+    } else {
+        rebirthBtn.disabled = true;
+        rebirthBtn.classList.remove('ready');
+    }
 }
 
 // ============================================
@@ -140,6 +161,26 @@ function createCard(item, isOwned) {
         <div class="card-income">+R$ ${item.income.toFixed(2)}/s</div>
         <div class="card-price ${item.price === 0 ? 'free' : ''}">${priceText}</div>
         <button class="${btnClass}" ${isOwned ? 'disabled' : ''} onclick="handleBuy(${item.id})">${btnText}</button>
+    `;
+
+    return card;
+}
+
+function createDevCard(dev, isOwned) {
+    const card = document.createElement('div');
+    card.className = `card dev-card ${isOwned ? 'owned' : ''}`;
+
+    const bonusPercent = (dev.bonus * 100).toFixed(0);
+    const btnText = isOwned ? '✓ Contratado' : '👔 Contratar';
+    const btnClass = isOwned ? 'card-btn owned-btn' : 'card-btn';
+
+    card.innerHTML = `
+        <div class="card-icon">${dev.icon}</div>
+        <div class="card-name">${dev.name}</div>
+        <div class="card-genre">${dev.skill}</div>
+        <div class="card-bonus">+${bonusPercent}% Renda</div>
+        <div class="card-price">R$ ${formatNumber(dev.price)}</div>
+        <button class="${btnClass}" ${isOwned ? 'disabled' : ''} onclick="handleBuyDev(${dev.id})">${btnText}</button>
     `;
 
     return card;
@@ -178,30 +219,56 @@ function createMyGameCard(game) {
 function renderGrid(tab) {
     const grid = document.getElementById('grid');
     const criarSection = document.getElementById('criarSection');
+    const rebirthSection = document.getElementById('rebirthSection');
 
     grid.innerHTML = '';
     criarSection.style.display = 'none';
+    rebirthSection.style.display = 'none';
 
+    // Seção de Devs
+    if (tab === 'devs-cheap' || tab === 'devs-medium' || tab === 'devs-expensive' || tab === 'devs-premium') {
+        grid.style.display = 'grid';
+        const devCategory = tab.replace('devs-', '');
+        const devList = devs[devCategory] || [];
+        devList.forEach(dev => {
+            const isOwned = isDevOwned(dev.id);
+            grid.appendChild(createDevCard(dev, isOwned));
+        });
+        return;
+    }
+
+    // Seção de Criar Jogo
     if (tab === 'criar') {
         criarSection.style.display = 'block';
         grid.style.display = 'none';
         renderMyGames();
         return;
-    } else {
-        grid.style.display = 'grid';
     }
 
+    // Seção de Rebirth
+    if (tab === 'rebirth') {
+        rebirthSection.style.display = 'block';
+        grid.style.display = 'none';
+        updateRebirthProgress();
+        return;
+    }
+
+    // Biblioteca
     if (tab === 'biblioteca') {
+        grid.style.display = 'grid';
         const all = [...state.owned, ...state.ownedCompanies];
-        if (all.length === 0 && state.createdGames.length === 0) {
-            grid.innerHTML = '<div class="empty"><div class="icon">📚</div><h3>Biblioteca vazia!</h3><p>Compre jogos e empresas.</p></div>';
+        if (all.length === 0 && state.createdGames.length === 0 && ownedDevs.length === 0) {
+            grid.innerHTML = '<div class="empty"><div class="icon">📚</div><h3>Biblioteca vazia!</h3><p>Compre jogos, empresas e contrate devs.</p></div>';
             return;
         }
         all.forEach(item => grid.appendChild(createCard(item, true)));
         state.createdGames.forEach(game => grid.appendChild(createMyGameCard(game)));
+        ownedDevs.forEach(dev => grid.appendChild(createDevCard(dev, true)));
         return;
     }
 
+    // Jogos e Empresas normais
+    grid.style.display = 'grid';
     const items = games[tab] || [];
     items.forEach(item => {
         const isOwned = isItemOwned(item.id);
@@ -241,10 +308,15 @@ function showTab(tab) {
         expensive: '💎 Jogos Caros (R$100-200)',
         super: '👑 Jogos Premium (R$200+)',
         empresas: '🏢 Empresas de Jogos',
+        'devs-cheap': '👨‍💻 Devs Baratos (R$1K-2K)',
+        'devs-medium': '👨‍💻 Devs Médios (R$20K-40K)',
+        'devs-expensive': '👨‍💻 Devs Caros (R$100K-200K)',
+        'devs-premium': '👨‍💻 Devs Premium (R$500K-1M)',
         criar: '🛠️ Criar Seu Próprio Jogo',
+        rebirth: '🔄 Rebirth',
         biblioteca: '📚 Minha Biblioteca'
     };
-    document.getElementById('sectionTitle').textContent = titles[tab];
+    document.getElementById('sectionTitle').textContent = titles[tab] || tab;
     renderGrid(tab);
 }
 
@@ -260,6 +332,25 @@ function handleBuy(id) {
         showNotif(
             result.item.type === 'empresa' ? '🏢 Empresa Adquirida!' : '🎮 Jogo Comprado!',
             `${result.item.name} (+R$${result.item.income.toFixed(2)}/s)`
+        );
+        updateUI();
+        renderGrid(currentTab);
+        saveGameData();
+    } else {
+        playError();
+        showNotif('❌ Erro!', result.message, true);
+    }
+}
+
+function handleBuyDev(id) {
+    const result = purchaseDev(id);
+    
+    if (result.success) {
+        playPlin();
+        const bonusPercent = (result.dev.bonus * 100).toFixed(0);
+        showNotif(
+            '👨‍💻 Dev Contratado!',
+            `${result.dev.name} (+${bonusPercent}% de renda)`
         );
         updateUI();
         renderGrid(currentTab);
@@ -309,11 +400,32 @@ function handleUpgrade(id) {
     }
 }
 
-function handleAddMoney() {
-    addMoney(100);
-    playCoin();
-    floatText('+R$100', event.target);
-    updateUI();
+function handleRebirth() {
+    const requirement = getNextRebirthRequirement();
+    const nextRebirth = state.rebirths + 1;
+    const newBonus = nextRebirth * REBIRTH_BONUS * 100;
+    
+    if (confirm(`🔄 REBIRTH ${nextRebirth}\n\n⚠️ Você irá perder:\n- Todo seu dinheiro\n- Todos os jogos\n- Todas as empresas\n- Todos os devs\n- Todos os jogos criados\n\n✨ Você ganhará:\n- +50% de bônus permanente de renda\n- Total: +${newBonus}% de renda\n\nDeseja continuar?`)) {
+        
+        const result = doRebirth();
+        
+        if (result.success) {
+            playRebirth();
+            showNotif('🔄 REBIRTH!', `Você agora tem +${(result.newBonus * 100).toFixed(0)}% de renda permanente!`);
+            updateUI();
+            renderGrid('free');
+            
+            // Voltar para aba de jogos grátis
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.tab').classList.add('active');
+            document.getElementById('sectionTitle').textContent = '🆓 Jogos Gratuitos';
+            
+            saveGameData();
+        } else {
+            playError();
+            showNotif('❌ Erro!', result.message, true);
+        }
+    }
 }
 
 function handleSave() {
@@ -326,7 +438,7 @@ function handleSave() {
 }
 
 function handleReset() {
-    if (confirm('⚠️ Tem certeza que deseja resetar todo o progresso?')) {
+    if (confirm('⚠️ Tem certeza que deseja resetar TODO o progresso?\n\nIsso irá apagar TUDO, incluindo rebirths!')) {
         resetGameData();
         updateUI();
         renderGrid(currentTab);
@@ -370,7 +482,6 @@ function floatText(text, element) {
 // ⏰ LOOPS E INICIALIZAÇÃO
 // ============================================
 
-// Loop de renda passiva (1x por segundo)
 function startIncomeLoop() {
     setInterval(() => {
         const total = calcTotalIncome();
@@ -380,7 +491,6 @@ function startIncomeLoop() {
             state.totalEarned += total;
             updateUI();
 
-            // Mostrar renda flutuante ocasionalmente
             if (Math.random() < 0.2) {
                 const el = document.querySelector('.stat-box');
                 if (el) floatText(`+R$${formatNumber(total)}`, el);
@@ -389,41 +499,33 @@ function startIncomeLoop() {
     }, 1000);
 }
 
-// Auto-save (a cada 30 segundos)
 function startAutoSave() {
     setInterval(() => {
-        if (state.owned.length > 0 || state.ownedCompanies.length > 0 || state.createdGames.length > 0) {
+        if (state.owned.length > 0 || state.ownedCompanies.length > 0 || state.createdGames.length > 0 || ownedDevs.length > 0 || state.rebirths > 0) {
             saveGameData();
         }
     }, 30000);
 }
 
-// Inicialização
 function initGame() {
-    // Carregar save
     const loaded = loadGameData();
     
-    // Atualizar UI
     updateUI();
     renderGrid('free');
 
-    // Iniciar loops
     startIncomeLoop();
     startAutoSave();
 
-    // Event listeners
     document.getElementById('overlay').onclick = () => {
         document.getElementById('overlay').classList.remove('show');
         document.getElementById('notif').classList.remove('show');
     };
 
-    // Mostrar mensagem se carregou save
-    if (loaded && (state.owned.length > 0 || state.ownedCompanies.length > 0 || state.createdGames.length > 0)) {
+    if (loaded && (state.owned.length > 0 || state.ownedCompanies.length > 0 || state.createdGames.length > 0 || ownedDevs.length > 0 || state.rebirths > 0)) {
         setTimeout(() => {
-            showNotif('💾 Progresso Carregado!', 'Bem-vindo de volta!');
+            showNotif('💾 Progresso Carregado!', `Bem-vindo de volta! (${state.rebirths} rebirths)`);
         }, 500);
     }
 }
 
-// Iniciar quando DOM estiver pronto
 document.addEventListener('DOMContentLoaded', initGame);

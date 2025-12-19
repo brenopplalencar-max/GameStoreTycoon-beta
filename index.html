@@ -19,7 +19,6 @@
             font-size: 12px;
         }
 
-        /* Header */
         .header {
             background: linear-gradient(90deg, #0055aa, #0077cc);
             padding: 10px 15px;
@@ -34,37 +33,37 @@
             box-shadow: 0 2px 15px rgba(0,100,200,0.5);
         }
 
-        .logo {
-            font-size: 1.3em;
-            font-weight: bold;
-        }
-
+        .logo { font-size: 1.3em; font-weight: bold; }
         .logo span { color: #00ffff; }
 
         .stats-bar {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
             flex-wrap: wrap;
         }
 
         .stat-box {
             background: rgba(0,0,0,0.3);
-            padding: 6px 12px;
-            border-radius: 15px;
+            padding: 5px 10px;
+            border-radius: 12px;
             border: 1px solid #0099ff;
-            font-size: 0.95em;
+            font-size: 0.9em;
         }
 
         .stat-box .value { color: #00ff88; font-weight: bold; }
-        .stat-box .income { color: #ffcc00; font-size: 0.85em; }
+        .stat-box .income { color: #ffcc00; font-size: 0.8em; }
 
-        .header-btns { display: flex; gap: 5px; }
+        .stat-box.rebirth-box { border-color: #ff66aa; }
+        .stat-box.rebirth-box .value { color: #ff99cc; }
 
-        .add-btn {
+        .stat-box.multiplier-box { border-color: #ffaa00; }
+        .stat-box.multiplier-box .value { color: #ffcc00; }
+
+        .save-btn {
             background: linear-gradient(45deg, #00aa55, #00dd77);
             border: none;
-            padding: 6px 12px;
+            padding: 8px 20px;
             border-radius: 12px;
             color: white;
             font-weight: bold;
@@ -73,23 +72,16 @@
             transition: all 0.2s;
         }
 
-        .add-btn:hover {
+        .save-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 10px rgba(0,255,100,0.5);
+            box-shadow: 0 0 15px rgba(0,255,100,0.5);
         }
 
-        .save-btn { background: linear-gradient(45deg, #aa6600, #dd8800); }
-        .save-btn:hover { box-shadow: 0 0 10px rgba(255,150,0,0.5); }
-
-        .reset-btn { background: linear-gradient(45deg, #aa0033, #dd0044); }
-        .reset-btn:hover { box-shadow: 0 0 10px rgba(255,0,50,0.5); }
-
-        /* Tabs */
         .tabs {
             background: rgba(0,30,60,0.8);
             padding: 8px;
             display: flex;
-            gap: 5px;
+            gap: 4px;
             flex-wrap: wrap;
             justify-content: center;
             border-bottom: 1px solid #004488;
@@ -99,25 +91,22 @@
             background: rgba(0,80,160,0.4);
             border: 1px solid #0066aa;
             color: white;
-            padding: 6px 12px;
-            border-radius: 12px;
+            padding: 5px 10px;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 0.85em;
+            font-size: 0.8em;
             transition: all 0.2s;
         }
 
         .tab:hover { background: rgba(0,100,200,0.6); }
-
-        .tab.active {
-            background: linear-gradient(45deg, #0066cc, #0099ff);
-            border-color: #00ccff;
-        }
+        .tab.active { background: linear-gradient(45deg, #0066cc, #0099ff); border-color: #00ccff; }
 
         .tab-empresas.active { background: linear-gradient(45deg, #aa6600, #ff9900); }
+        .tab-devs.active { background: linear-gradient(45deg, #6600aa, #9933ff); }
         .tab-criar.active { background: linear-gradient(45deg, #00aa66, #00ff99); }
-        .tab-biblioteca.active { background: linear-gradient(45deg, #6600aa, #9933ff); }
+        .tab-rebirth.active { background: linear-gradient(45deg, #aa0066, #ff0099); }
+        .tab-biblioteca.active { background: linear-gradient(45deg, #006688, #0099bb); }
 
-        /* Main Container */
         .main {
             padding: 15px;
             max-width: 1200px;
@@ -131,14 +120,12 @@
             color: #00ccff;
         }
 
-        /* Grid */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
             gap: 10px;
         }
 
-        /* Card */
         .card {
             background: linear-gradient(180deg, #1a3a5c, #0d1f33);
             border: 2px solid #0055aa;
@@ -164,28 +151,37 @@
             background: linear-gradient(180deg, #1a4a3c, #0d2f23);
         }
 
-        .card-icon { font-size: 2.2em; margin-bottom: 5px; }
-        .card-name { font-size: 0.85em; font-weight: bold; margin-bottom: 3px; line-height: 1.2; }
-        .card-genre { font-size: 0.7em; color: #88bbdd; margin-bottom: 5px; }
-        .card-price { font-size: 0.95em; color: #00ff88; font-weight: bold; }
+        .card-icon { font-size: 2em; margin-bottom: 3px; }
+        .card-name { font-size: 0.8em; font-weight: bold; margin-bottom: 2px; line-height: 1.1; }
+        .card-genre { font-size: 0.65em; color: #88bbdd; margin-bottom: 3px; }
+        .card-price { font-size: 0.85em; color: #00ff88; font-weight: bold; }
         .card-price.free { color: #00ddff; }
 
         .card-income {
-            font-size: 0.75em;
+            font-size: 0.7em;
             color: #ffcc00;
             background: rgba(0,0,0,0.3);
-            padding: 2px 6px;
-            border-radius: 8px;
-            margin: 5px 0;
+            padding: 2px 5px;
+            border-radius: 6px;
+            margin: 3px 0;
+        }
+
+        .card-bonus {
+            font-size: 0.7em;
+            color: #ff99ff;
+            background: rgba(100,0,100,0.3);
+            padding: 2px 5px;
+            border-radius: 6px;
+            margin: 3px 0;
         }
 
         .card-btn {
             background: linear-gradient(45deg, #0055aa, #0077dd);
             border: none;
-            padding: 5px 10px;
-            border-radius: 10px;
+            padding: 4px 8px;
+            border-radius: 8px;
             color: white;
-            font-size: 0.8em;
+            font-size: 0.75em;
             cursor: pointer;
             width: 100%;
             transition: all 0.2s;
@@ -203,16 +199,15 @@
             color: white;
             padding: 2px 5px;
             border-radius: 5px;
-            font-size: 0.7em;
+            font-size: 0.65em;
             font-weight: bold;
         }
 
-        /* Empresa Card */
         .empresa-card {
             background: linear-gradient(180deg, #3a2a1a, #1f1510);
             border: 2px solid #cc8800;
             aspect-ratio: auto;
-            min-height: 160px;
+            min-height: 150px;
         }
 
         .empresa-card:hover {
@@ -225,9 +220,25 @@
             background: linear-gradient(180deg, #2a3a2a, #151f15);
         }
 
-        .empresa-icon { font-size: 2.5em; }
+        .empresa-icon { font-size: 2.2em; }
 
-        /* Criar Section */
+        .dev-card {
+            background: linear-gradient(180deg, #2a1a3a, #15101f);
+            border: 2px solid #9933ff;
+            aspect-ratio: auto;
+            min-height: 150px;
+        }
+
+        .dev-card:hover {
+            border-color: #cc66ff;
+            box-shadow: 0 5px 20px rgba(150,50,255,0.4);
+        }
+
+        .dev-card.owned {
+            border-color: #00aa55;
+            background: linear-gradient(180deg, #2a3a2a, #151f15);
+        }
+
         .criar-section {
             background: linear-gradient(180deg, #1a3a2a, #0d1f18);
             border: 2px solid #00aa66;
@@ -240,7 +251,7 @@
             color: #00ff99;
             margin-bottom: 15px;
             text-align: center;
-            font-size: 1.3em;
+            font-size: 1.2em;
         }
 
         .criar-form {
@@ -251,12 +262,7 @@
             align-items: flex-end;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
         .form-group label { font-size: 0.85em; color: #88ddaa; }
 
         .form-group input, .form-group select {
@@ -291,8 +297,6 @@
             box-shadow: 0 0 15px rgba(0,255,100,0.5);
         }
 
-        .criar-btn:disabled { background: #444; cursor: not-allowed; transform: none; }
-
         .criar-info {
             text-align: center;
             margin-top: 10px;
@@ -313,7 +317,7 @@
             background: linear-gradient(180deg, #1a4a3a, #0d2f23);
             border: 2px solid #00dd77;
             aspect-ratio: auto;
-            min-height: 180px;
+            min-height: 160px;
         }
 
         .meu-jogo-card:hover {
@@ -329,7 +333,7 @@
             color: #333;
             padding: 2px 8px;
             border-radius: 8px;
-            font-size: 0.75em;
+            font-size: 0.7em;
             font-weight: bold;
         }
 
@@ -340,7 +344,114 @@
 
         .upgrade-btn:hover { background: linear-gradient(45deg, #dd9900, #ffbb00); }
 
-        /* Notificação */
+        /* Rebirth Section */
+        .rebirth-section {
+            background: linear-gradient(180deg, #3a1a2a, #1f1015);
+            border: 2px solid #ff0066;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .rebirth-section h3 {
+            color: #ff66aa;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .rebirth-info {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .rebirth-info p {
+            margin: 8px 0;
+            font-size: 0.95em;
+        }
+
+        .rebirth-info .highlight { color: #ffcc00; font-weight: bold; }
+        .rebirth-info .warning { color: #ff6666; }
+        .rebirth-info .bonus { color: #66ff66; }
+
+        .rebirth-progress-container {
+            background: rgba(0,0,0,0.4);
+            border-radius: 15px;
+            height: 30px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 2px solid #ff0066;
+        }
+
+        .rebirth-progress {
+            background: linear-gradient(90deg, #ff0066, #ff66aa);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .rebirth-requirement {
+            color: #ff99cc;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .rebirth-btn {
+            background: linear-gradient(45deg, #880044, #aa0055);
+            border: 2px solid #ff0066;
+            padding: 15px 40px;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0.5;
+        }
+
+        .rebirth-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        .rebirth-btn.ready {
+            opacity: 1;
+            animation: rebirthPulse 1.5s infinite;
+        }
+
+        .rebirth-btn.ready:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(255,0,100,0.6);
+        }
+
+        @keyframes rebirthPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255,0,100,0.4); }
+            50% { box-shadow: 0 0 25px rgba(255,0,100,0.8); }
+        }
+
+        .rebirth-stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .rebirth-stat {
+            background: rgba(0,0,0,0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #ff66aa;
+        }
+
+        .rebirth-stat .label { font-size: 0.8em; color: #ff99cc; }
+        .rebirth-stat .value { font-size: 1.2em; font-weight: bold; color: #ffcc00; }
+
         .notif {
             position: fixed;
             top: 50%;
@@ -371,7 +482,6 @@
 
         .overlay.show { display: block; }
 
-        /* Empty State */
         .empty {
             text-align: center;
             padding: 40px;
@@ -381,7 +491,6 @@
 
         .empty .icon { font-size: 3em; margin-bottom: 10px; }
 
-        /* Float Income */
         .float-income {
             position: fixed;
             pointer-events: none;
@@ -398,7 +507,6 @@
             100% { opacity: 0; transform: translateY(-40px); }
         }
 
-        /* Income Summary */
         .income-summary {
             background: rgba(0,50,100,0.5);
             border: 1px solid #0077cc;
@@ -408,14 +516,13 @@
             display: flex;
             justify-content: space-around;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .income-item { text-align: center; }
-        .income-item .label { font-size: 0.8em; color: #88bbdd; }
-        .income-item .value { font-size: 1.1em; font-weight: bold; color: #ffcc00; }
+        .income-item .label { font-size: 0.75em; color: #88bbdd; }
+        .income-item .value { font-size: 1em; font-weight: bold; color: #ffcc00; }
 
-        /* Save Indicator */
         .save-indicator {
             position: fixed;
             bottom: 20px;
@@ -432,17 +539,17 @@
 
         .save-indicator.show { opacity: 1; }
 
-        /* Responsive */
         @media (max-width: 600px) {
-            .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
-            .card-icon { font-size: 1.8em; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+            .card-icon { font-size: 1.6em; }
             .header { flex-direction: column; text-align: center; }
             .criar-form { flex-direction: column; align-items: stretch; }
+            .tabs { gap: 3px; }
+            .tab { padding: 4px 8px; font-size: 0.7em; }
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
     <div class="header">
         <div class="logo">🎮 <span>GAME</span>TYCOON</div>
         <div class="stats-bar">
@@ -452,16 +559,14 @@
             </div>
             <div class="stat-box">🎮 <span class="value" id="gamesOwned">0</span></div>
             <div class="stat-box">🏢 <span class="value" id="companiesOwned">0</span></div>
+            <div class="stat-box">👨‍💻 <span class="value" id="devsOwned">0</span></div>
             <div class="stat-box">🛠️ <span class="value" id="createdGames">0</span></div>
+            <div class="stat-box rebirth-box">🔄 <span class="value" id="rebirthCount">0</span></div>
+            <div class="stat-box multiplier-box">📈 <span class="value" id="multiplier">100%</span></div>
         </div>
-        <div class="header-btns">
-            <button class="add-btn" onclick="handleAddMoney()">+R$100</button>
-            <button class="add-btn save-btn" onclick="handleSave()">💾 Salvar</button>
-            <button class="add-btn reset-btn" onclick="handleReset()">🔄 Reset</button>
-        </div>
+        <button class="save-btn" onclick="handleSave()">💾 Salvar</button>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
         <button class="tab active" onclick="showTab('free')">🆓 Grátis</button>
         <button class="tab" onclick="showTab('cheap')">💵 Baratos</button>
@@ -469,24 +574,27 @@
         <button class="tab" onclick="showTab('expensive')">💎 Caros</button>
         <button class="tab" onclick="showTab('super')">👑 Premium</button>
         <button class="tab tab-empresas" onclick="showTab('empresas')">🏢 Empresas</button>
-        <button class="tab tab-criar" onclick="showTab('criar')">🛠️ Criar Jogo</button>
+        <button class="tab tab-devs" onclick="showTab('devs-cheap')">👶 Devs $</button>
+        <button class="tab tab-devs" onclick="showTab('devs-medium')">👨‍💻 Devs $$</button>
+        <button class="tab tab-devs" onclick="showTab('devs-expensive')">🎓 Devs $$$</button>
+        <button class="tab tab-devs" onclick="showTab('devs-premium')">👑 Devs $$$$</button>
+        <button class="tab tab-criar" onclick="showTab('criar')">🛠️ Criar</button>
+        <button class="tab tab-rebirth" onclick="showTab('rebirth')">🔄 Rebirth</button>
         <button class="tab tab-biblioteca" onclick="showTab('biblioteca')">📚 Biblioteca</button>
     </div>
 
-    <!-- Main Content -->
     <div class="main">
-        <!-- Income Summary -->
         <div class="income-summary">
             <div class="income-item">
-                <div class="label">Renda Jogos</div>
+                <div class="label">Jogos</div>
                 <div class="value">+R$ <span id="gamesIncome">0.00</span>/s</div>
             </div>
             <div class="income-item">
-                <div class="label">Renda Empresas</div>
+                <div class="label">Empresas</div>
                 <div class="value">+R$ <span id="companiesIncome">0.00</span>/s</div>
             </div>
             <div class="income-item">
-                <div class="label">Renda Meus Jogos</div>
+                <div class="label">Meus Jogos</div>
                 <div class="value">+R$ <span id="myGamesIncome">0.00</span>/s</div>
             </div>
             <div class="income-item">
@@ -495,7 +603,6 @@
             </div>
         </div>
 
-        <!-- Section Title -->
         <h2 class="section-title" id="sectionTitle">🆓 Jogos Gratuitos</h2>
 
         <!-- Criar Jogo Section -->
@@ -538,35 +645,66 @@
                             <option value="🔥">🔥 Fogo</option>
                         </select>
                     </div>
-                    <button class="criar-btn" onclick="handleCreateGame()">🛠️ Criar Jogo (R$1.000.000)</button>
+                    <button class="criar-btn" onclick="handleCreateGame()">🛠️ Criar (R$1M)</button>
                 </div>
                 <div class="criar-info">
-                    Custo: <span>R$ 1.000.000</span> | Renda inicial: <span>R$ 20/s</span> | Upgrades disponíveis!
+                    Custo: <span>R$ 1.000.000</span> | Renda inicial: <span>R$ 20/s</span>
                 </div>
             </div>
-
             <h3 class="meus-jogos-title" id="meusJogosTitle">📦 Meus Jogos Criados</h3>
             <div class="grid" id="meusJogosGrid"></div>
         </div>
 
-        <!-- Games Grid -->
+        <!-- Rebirth Section -->
+        <div id="rebirthSection" style="display: none;">
+            <div class="rebirth-section">
+                <h3>🔄 REBIRTH</h3>
+                
+                <div class="rebirth-info">
+                    <p class="warning">⚠️ <strong>Você perderá:</strong> Todo dinheiro, jogos, empresas, devs e jogos criados</p>
+                    <p class="bonus">✨ <strong>Você ganhará:</strong> +50% de bônus PERMANENTE de renda por rebirth</p>
+                    <p class="highlight">🎯 Bônus atual: +<span id="currentRebirthBonus">0</span>% | Próximo: +<span id="nextRebirthBonus">50</span>%</p>
+                </div>
+
+                <div class="rebirth-progress-container">
+                    <div class="rebirth-progress" id="rebirthProgress"></div>
+                </div>
+                
+                <p class="rebirth-requirement">Necessário: R$ <span id="rebirthRequirement">10M</span></p>
+
+                <button class="rebirth-btn" id="rebirthBtn" onclick="handleRebirth()" disabled>
+                    🔄 FAZER REBIRTH
+                </button>
+
+                <div class="rebirth-stats">
+                    <div class="rebirth-stat">
+                        <div class="label">Rebirths Totais</div>
+                        <div class="value" id="totalRebirths">0</div>
+                    </div>
+                    <div class="rebirth-stat">
+                        <div class="label">Bônus Total</div>
+                        <div class="value">+<span id="totalBonus">0</span>%</div>
+                    </div>
+                    <div class="rebirth-stat">
+                        <div class="label">Ganhos Lifetime</div>
+                        <div class="value">R$ <span id="lifetimeEarnings">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="grid" id="grid"></div>
     </div>
 
-    <!-- Overlay -->
     <div class="overlay" id="overlay"></div>
-
-    <!-- Notification -->
     <div class="notif" id="notif">
         <div class="icon">✅</div>
         <h3>Sucesso!</h3>
         <p id="notifText">Item adicionado!</p>
     </div>
-
-    <!-- Save Indicator -->
     <div class="save-indicator" id="saveIndicator">💾 Jogo Salvo!</div>
 
-    <!-- Scripts -->
+    <script src="devs.js"></script>
     <script src="dados.js"></script>
     <script src="interface.js"></script>
 </body>
