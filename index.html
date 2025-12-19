@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎮 GameStore Tycoon</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a1628 0%, #1a3a5c 50%, #0d2137 100%);
+            min-height: 100vh;
+            color: white;
+            font-size: 12px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(90deg, #0055aa, #0077cc);
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 15px rgba(0,100,200,0.5);
+        }
+
+        .logo {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .logo span { color: #00ffff; }
+
+        .stats-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: rgba(0,0,0,0.3);
+            padding: 6px 12px;
+            border-radius: 15px;
+            border: 1px solid #0099ff;
+            font-size: 0.95em;
+        }
+
+        .stat-box .value { color: #00ff88; font-weight: bold; }
+        .stat-box .income { color: #ffcc00; font-size: 0.85em; }
+
+        .header-btns { display: flex; gap: 5px; }
+
+        .add-btn {
+            background: linear-gradient(45deg, #00aa55, #00dd77);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .add-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0,255,100,0.5);
+        }
+
+        .save-btn { background: linear-gradient(45deg, #aa6600, #dd8800); }
+        .save-btn:hover { box-shadow: 0 0 10px rgba(255,150,0,0.5); }
+
+        .reset-btn { background: linear-gradient(45deg, #aa0033, #dd0044); }
+        .reset-btn:hover { box-shadow: 0 0 10px rgba(255,0,50,0.5); }
+
+        /* Tabs */
+        .tabs {
+            background: rgba(0,30,60,0.8);
+            padding: 8px;
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            border-bottom: 1px solid #004488;
+        }
+
+        .tab {
+            background: rgba(0,80,160,0.4);
+            border: 1px solid #0066aa;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s;
+        }
+
+        .tab:hover { background: rgba(0,100,200,0.6); }
+
+        .tab.active {
+            background: linear-gradient(45deg, #0066cc, #0099ff);
+            border-color: #00ccff;
+        }
+
+        .tab-empresas.active { background: linear-gradient(45deg, #aa6600, #ff9900); }
+        .tab-criar.active { background: linear-gradient(45deg, #00aa66, #00ff99); }
+        .tab-biblioteca.active { background: linear-gradient(45deg, #6600aa, #9933ff); }
+
+        /* Main Container */
+        .main {
+            padding: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #00ccff;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        /* Card */
+        .card {
+            background: linear-gradient(180deg, #1a3a5c, #0d1f33);
+            border: 2px solid #0055aa;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            transition: all 0.2s;
+            position: relative;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #00ccff;
+            box-shadow: 0 5px 20px rgba(0,150,255,0.4);
+        }
+
+        .card.owned {
+            border-color: #00aa55;
+            background: linear-gradient(180deg, #1a4a3c, #0d2f23);
+        }
+
+        .card-icon { font-size: 2.2em; margin-bottom: 5px; }
+        .card-name { font-size: 0.85em; font-weight: bold; margin-bottom: 3px; line-height: 1.2; }
+        .card-genre { font-size: 0.7em; color: #88bbdd; margin-bottom: 5px; }
+        .card-price { font-size: 0.95em; color: #00ff88; font-weight: bold; }
+        .card-price.free { color: #00ddff; }
+
+        .card-income {
+            font-size: 0.75em;
+            color: #ffcc00;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin: 5px 0;
+        }
+
+        .card-btn {
+            background: linear-gradient(45deg, #0055aa, #0077dd);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.8em;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+
+        .card-btn:hover { background: linear-gradient(45deg, #0077dd, #0099ff); }
+        .card-btn.owned-btn { background: linear-gradient(45deg, #006633, #00aa55); }
+        .card-btn:disabled { background: #333; cursor: not-allowed; }
+
+        .discount {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff3366;
+            color: white;
+            padding: 2px 5px;
+            border-radius: 5px;
+            font-size: 0.7em;
+            font-weight: bold;
+        }
+
+        /* Empresa Card */
+        .empresa-card {
+            background: linear-gradient(180deg, #3a2a1a, #1f1510);
+            border: 2px solid #cc8800;
+            aspect-ratio: auto;
+            min-height: 160px;
+        }
+
+        .empresa-card:hover {
+            border-color: #ffaa00;
+            box-shadow: 0 5px 20px rgba(255,150,0,0.4);
+        }
+
+        .empresa-card.owned {
+            border-color: #00aa55;
+            background: linear-gradient(180deg, #2a3a2a, #151f15);
+        }
+
+        .empresa-icon { font-size: 2.5em; }
+
+        /* Criar Section */
+        .criar-section {
+            background: linear-gradient(180deg, #1a3a2a, #0d1f18);
+            border: 2px solid #00aa66;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .criar-section h3 {
+            color: #00ff99;
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.3em;
+        }
+
+        .criar-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .form-group label { font-size: 0.85em; color: #88ddaa; }
+
+        .form-group input, .form-group select {
+            background: rgba(0,50,30,0.5);
+            border: 1px solid #00aa66;
+            padding: 8px 12px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.95em;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #00ff99;
+            box-shadow: 0 0 10px rgba(0,255,150,0.3);
+        }
+
+        .criar-btn {
+            background: linear-gradient(45deg, #00aa55, #00dd77);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 12px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.2s;
+        }
+
+        .criar-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0,255,100,0.5);
+        }
+
+        .criar-btn:disabled { background: #444; cursor: not-allowed; transform: none; }
+
+        .criar-info {
+            text-align: center;
+            margin-top: 10px;
+            color: #88ddaa;
+            font-size: 0.9em;
+        }
+
+        .criar-info span { color: #ffcc00; font-weight: bold; }
+
+        .meus-jogos-title {
+            color: #00ff99;
+            margin: 20px 0 15px;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .meu-jogo-card {
+            background: linear-gradient(180deg, #1a4a3a, #0d2f23);
+            border: 2px solid #00dd77;
+            aspect-ratio: auto;
+            min-height: 180px;
+        }
+
+        .meu-jogo-card:hover {
+            border-color: #00ff99;
+            box-shadow: 0 5px 20px rgba(0,255,100,0.4);
+        }
+
+        .level-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: linear-gradient(45deg, #ffaa00, #ffcc00);
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(45deg, #cc8800, #ffaa00);
+            margin-top: 5px;
+        }
+
+        .upgrade-btn:hover { background: linear-gradient(45deg, #dd9900, #ffbb00); }
+
+        /* Notificação */
+        .notif {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #00aa55, #00dd77);
+            padding: 25px 40px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 0 40px rgba(0,255,100,0.6);
+            transition: transform 0.2s;
+        }
+
+        .notif.show { transform: translate(-50%, -50%) scale(1); }
+        .notif h3 { font-size: 1.3em; margin-bottom: 5px; color: #003322; }
+        .notif p { color: #004433; font-size: 0.95em; }
+        .notif .icon { font-size: 2.5em; margin-bottom: 5px; }
+
+        .overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show { display: block; }
+
+        /* Empty State */
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: #6699bb;
+            grid-column: 1 / -1;
+        }
+
+        .empty .icon { font-size: 3em; margin-bottom: 10px; }
+
+        /* Float Income */
+        .float-income {
+            position: fixed;
+            pointer-events: none;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1em;
+            z-index: 500;
+            animation: floatUp 1.5s ease-out forwards;
+            text-shadow: 0 0 5px rgba(0,255,100,0.8);
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-40px); }
+        }
+
+        /* Income Summary */
+        .income-summary {
+            background: rgba(0,50,100,0.5);
+            border: 1px solid #0077cc;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .income-item { text-align: center; }
+        .income-item .label { font-size: 0.8em; color: #88bbdd; }
+        .income-item .value { font-size: 1.1em; font-weight: bold; color: #ffcc00; }
+
+        /* Save Indicator */
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,100,50,0.9);
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #00ff88;
+            font-size: 0.9em;
+            z-index: 500;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .save-indicator.show { opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+            .card-icon { font-size: 1.8em; }
+            .header { flex-direction: column; text-align: center; }
+            .criar-form { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo">🎮 <span>GAME</span>TYCOON</div>
+        <div class="stats-bar">
+            <div class="stat-box">
+                💰 R$ <span class="value" id="balance">0.00</span>
+                <span class="income">(+<span id="totalIncome">0.00</span>/s)</span>
+            </div>
+            <div class="stat-box">🎮 <span class="value" id="gamesOwned">0</span></div>
+            <div class="stat-box">🏢 <span class="value" id="companiesOwned">0</span></div>
+            <div class="stat-box">🛠️ <span class="value" id="createdGames">0</span></div>
+        </div>
+        <div class="header-btns">
+            <button class="add-btn" onclick="handleAddMoney()">+R$100</button>
+            <button class="add-btn save-btn" onclick="handleSave()">💾 Salvar</button>
+            <button class="add-btn reset-btn" onclick="handleReset()">🔄 Reset</button>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('free')">🆓 Grátis</button>
+        <button class="tab" onclick="showTab('cheap')">💵 Baratos</button>
+        <button class="tab" onclick="showTab('medium')">💰 Médios</button>
+        <button class="tab" onclick="showTab('expensive')">💎 Caros</button>
+        <button class="tab" onclick="showTab('super')">👑 Premium</button>
+        <button class="tab tab-empresas" onclick="showTab('empresas')">🏢 Empresas</button>
+        <button class="tab tab-criar" onclick="showTab('criar')">🛠️ Criar Jogo</button>
+        <button class="tab tab-biblioteca" onclick="showTab('biblioteca')">📚 Biblioteca</button>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+        <!-- Income Summary -->
+        <div class="income-summary">
+            <div class="income-item">
+                <div class="label">Renda Jogos</div>
+                <div class="value">+R$ <span id="gamesIncome">0.00</span>/s</div>
+            </div>
+            <div class="income-item">
+                <div class="label">Renda Empresas</div>
+                <div class="value">+R$ <span id="companiesIncome">0.00</span>/s</div>
+            </div>
+            <div class="income-item">
+                <div class="label">Renda Meus Jogos</div>
+                <div class="value">+R$ <span id="myGamesIncome">0.00</span>/s</div>
+            </div>
+            <div class="income-item">
+                <div class="label">Total Ganho</div>
+                <div class="value">R$ <span id="totalEarned">0.00</span></div>
+            </div>
+        </div>
+
+        <!-- Section Title -->
+        <h2 class="section-title" id="sectionTitle">🆓 Jogos Gratuitos</h2>
+
+        <!-- Criar Jogo Section -->
+        <div id="criarSection" style="display: none;">
+            <div class="criar-section">
+                <h3>🛠️ Criar Seu Próprio Jogo</h3>
+                <div class="criar-form">
+                    <div class="form-group">
+                        <label>Nome do Jogo</label>
+                        <input type="text" id="gameName" placeholder="Meu Jogo Incrível" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label>Gênero</label>
+                        <select id="gameGenre">
+                            <option value="RPG">RPG</option>
+                            <option value="Ação">Ação</option>
+                            <option value="Aventura">Aventura</option>
+                            <option value="FPS">FPS</option>
+                            <option value="Puzzle">Puzzle</option>
+                            <option value="Simulação">Simulação</option>
+                            <option value="Esportes">Esportes</option>
+                            <option value="Terror">Terror</option>
+                            <option value="Indie">Indie</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ícone</label>
+                        <select id="gameIcon">
+                            <option value="🎮">🎮 Controle</option>
+                            <option value="⚔️">⚔️ Espadas</option>
+                            <option value="🚀">🚀 Foguete</option>
+                            <option value="🏰">🏰 Castelo</option>
+                            <option value="🐉">🐉 Dragão</option>
+                            <option value="🤖">🤖 Robô</option>
+                            <option value="🧙">🧙 Mago</option>
+                            <option value="🏎️">🏎️ Carro</option>
+                            <option value="👾">👾 Alien</option>
+                            <option value="💎">💎 Diamante</option>
+                            <option value="🌟">🌟 Estrela</option>
+                            <option value="🔥">🔥 Fogo</option>
+                        </select>
+                    </div>
+                    <button class="criar-btn" onclick="handleCreateGame()">🛠️ Criar Jogo (R$1.000.000)</button>
+                </div>
+                <div class="criar-info">
+                    Custo: <span>R$ 1.000.000</span> | Renda inicial: <span>R$ 20/s</span> | Upgrades disponíveis!
+                </div>
+            </div>
+
+            <h3 class="meus-jogos-title" id="meusJogosTitle">📦 Meus Jogos Criados</h3>
+            <div class="grid" id="meusJogosGrid"></div>
+        </div>
+
+        <!-- Games Grid -->
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Notification -->
+    <div class="notif" id="notif">
+        <div class="icon">✅</div>
+        <h3>Sucesso!</h3>
+        <p id="notifText">Item adicionado!</p>
+    </div>
+
+    <!-- Save Indicator -->
+    <div class="save-indicator" id="saveIndicator">💾 Jogo Salvo!</div>
+
+    <!-- Scripts -->
+    <script src="dados.js"></script>
+    <script src="interface.js"></script>
+</body>
+</html>
